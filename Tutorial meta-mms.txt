@@ -1,0 +1,62 @@
+https://www.youtube.com/watch?v=7K4b2S7X99w
+https://github.com/ikequan/meta-mms
+
+#Las librerias se instalan en:
+C:\Users\jorge\AppData\Local\Programs\Python\Python311\Scripts
+
+# Salida de Audio de video
+C:\Users\jorge\AppData\Local\Temp\gradio\04300dd9108b391bd8a7984ab530b47d54bfec91\
+
+#Lenguajes soportados:
+https://github.com/wannaphong/ttsmms/blob/main/support_list.txt
+
+# Descargar e instalar Phyton si no está instalado
+# Comprobar la instalacion de PIP:
+.\pip help
+
+# Si PIP no está instalado descargarlo de:
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+# Instalar PIP, pasar a la carpeta donde se descargó el archivo get-pip.py:
+py get-pip.py
+# Agregar el PATH de la instalación en las variables de entorno y colocarlo al inicio de la lista
+
+
+# Instalar transformers:
+.\pip install torch datasets[audio]
+.\pip install --upgrade transformers
+
+# Instalar los complementos necesarios para la aplicación:
+.\pip install gradio SpeechRecognition ttsmms deep_translator
+
+# Comprobar ISO de idiomas disponibles:
+https://dl.fbaipublicfiles.com/mms/tts/all-tts-languages.html
+
+# descargar los idiomas a soportar cambiando el ISO del idioma correspondiente:
+https://dl.fbaipublicfiles.com/mms/tts/full_model/eng.tar.gz  #Inglés (eng)
+https://dl.fbaipublicfiles.com/mms/tts/full_model/spa.tar.gz  #Español (spa)
+https://dl.fbaipublicfiles.com/mms/tts/full_model/gum.tar.gz  #Misak (gum)
+https://dl.fbaipublicfiles.com/mms/tts/full_model/quz.tar.gz  #Quechua Cuzco (quz)
+   
+# crear carpeta "data" y descomprimir ahi los lenguajes dentro del proyecto:
+/meta-mms/data/spa/
+/meta-mms/data/eng/
+
+# instalar ffmpeg mediante cmd como administrador:
+choco install ffmpeg
+
+# extraer audio de un video
+ffmpeg -y -i input.mp4 -ar 16000 -ac 1 output_audio.wav 
+
+# dejar un video sin audio
+ffmpeg -y -i input.mp4 -t 43 output_muted.webm
+ffmpeg -y -i input.mp4 -shortest output_muted.webm
+
+# unir audio con video
+ffmpeg -y -i input.mp4 -i audio.wav -an output_muted.webm
+
+# subtitulos
+ffmpeg -y -copyts -i input.webm -vf subtitles=subtitle.srt output_srt.webm
+ffmpeg -y -copyts -i noticias_caracol_tv.mp4 -vf subtitles=noticias_caracol_tv_subtitles.srt output_srt.webm
+
+# Para ejecutar la aplicación:
+py app.py

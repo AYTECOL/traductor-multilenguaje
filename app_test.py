@@ -5,12 +5,7 @@ from deep_translator import GoogleTranslator
 
 import subprocess                                   # Librerias de video 
 import os
-import time                                         # Librerias para manejo de tiempos
-
 import shutil                                       # Libreria para borrar archivos para limpiar la caché
-
-# Idioma de ingreso
-input_language = 'es-ES'
 
 # Inicializa el modelo TTS para los idiomas soportados 
 spanish = TTS("data/spa")    #español
@@ -18,30 +13,8 @@ english = TTS("data/eng")    #inglés
 misak = TTS("data/gum")      #misak
 quechua = TTS("data/quz")    #quechua
 
-# Crea la lista de idiomas soportados para traducir y su modelo TTS correspondiente
+# Crea la lista de idiomas soportados y su modelo TTS correspondiente
 langs = [{"lang": 'spanish', "tts": spanish}, {"lang": 'english', "tts": english}, {"lang": 'guarani', "tts": misak}, {"lang": 'quechua', "tts": quechua}]
-
-# *************************** BORRRAR CACHE ***************************     
-def delete_cache():
-    print("Borrando cache: ",os.getcwd())
-    #shutil.rmtree('C:/Users/jorge/AppData/Local/Temp/gradio/')
-"""""""""
-    path = 'C:/Users/jorge/AppData/Local/Temp/gradio/'
-    # checking whether the file is present in path or not
-    if os.path.exists(path):
-        for root_folder, folders, files in os.walk(path):               # iterating over each and every folder and file in the path
-            # checking folder from the root_folder
-            for folder in folders:
-                folder_path = os.path.join(root_folder, folder)         # folder path
-                shutil.rmtree(folder_path)                              # invoking the remove_folder function
-
-            # checking the current directory files
-            for file in files:          
-                file_path = os.path.join(root_folder, file)             # file path
-                shutil.rmtree(file_path)                                # invoking the remove_file function
-    else:
-        print(f'"{path}" is not found')                 # file/folder is not found
-"""""""""
 
 # *************************** MÉTODOS ***************************     
 # TEXT TO TEXT: Función que convierte texto a texto
@@ -71,11 +44,10 @@ def audio_to_text(audio_file):
     with sr.AudioFile(audio_file) as source:
         audio = r.record(source)
     try:
-        text = r.recognize_google(audio, language=input_language)
+        text = r.recognize_google(audio)
         print("Reconocimiento de audio obtenido: ",text)
         return text
     except sr.UnknownValueError:
-        print("Google Speech Recognition no pudo transcribir el audio.")
         return None
     except sr.RequestError:
         print("Reconocimiento de audio no disponible.")
@@ -85,6 +57,7 @@ def audio_to_text(audio_file):
 def video_to_audio(video_file, output_audio_ext):
     filename, ext = os.path.splitext(video_file)                            # Se extrae el nombre del archivo y su extensión
     subprocess.call(["ffmpeg", "-y", "-i", video_file, "-ar", "16000", "-ac", "1", f"{filename+'_audio'}.{output_audio_ext}"],  # Se extrae el archivo de audio del video
+    #subprocess.call(["ffmpeg", "-y", "-i", video_file, f"{filename+'_audio'}.{output_audio_ext}"],  # Se extrae el archivo de audio del video
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.STDOUT)
     audio_video = filename + "_audio." + output_audio_ext  
@@ -97,8 +70,6 @@ def video_to_video(video_file, audio_file_traslated, output_video_ext):
                 stdout=subprocess.DEVNULL,                                  # Se extrae el video sin audio
                 stderr=subprocess.STDOUT)
     video_mute = filename + "_muted." + output_video_ext
-    video_length = get_length_video(video_file)
-    print("Duración del video: ",video_length)
  
     subprocess.call(["ffmpeg", "-y", "-i", video_mute, "-i", audio_file_traslated, "-shortest", f"{filename+'_traslated'}.{output_video_ext}"],   
                 stdout=subprocess.DEVNULL,                                  # Se concatena el video sin audio con el audio traducido
@@ -107,90 +78,19 @@ def video_to_video(video_file, audio_file_traslated, output_video_ext):
     print("Video traducido: ",video_traslated)
     return video_traslated
 
-# VIDEO TO VIDEO SUBTITULADO: Función que coloca subtitulos traducidos al video
-def video_to_video_subtitled(video_file, text_traslated, output_video_ext):
-    subtitles = text_traslated.split()
-    filename, ext = os.path.splitext(video_file)                            # Se extrae el nombre del archivo y su extensión   
-    #filedir = os.path.dirname(video_file)
-    #subtitles_file = open(f"{filename+'_subtitles'}.srt","w+")
-    subtitles_file = open(f"{'video_subtitles'}.srt","w+")
-    for i in range(len(subtitles)):
-        subtitles_content = (''''''+str(i+1)+'''
-'''+ time.strftime('%H:%M:%S', time.gmtime(i)) + ''',001 --> ''' + time.strftime('%H:%M:%S', time.gmtime(i+1)) + ''',001 --> ''' +
-'''
-''''''<b>'''+ subtitles[i] + '''</b>'''
-'''
-''')
-        subtitles_file.write(subtitles_content)
-    subtitles_file.close()
-    #subtitles_file = filename + "_subtitles.srt"
-    subprocess.call(["ffmpeg", "-y", "-copyts", "-i", video_file, "-vf", "subtitles=video_subtitles.srt:force_style='Fontname=Futura,Fontsize=20,PrimaryColour=FFFFFF,MarginV=25'", f"{filename+'_subtitled'}.{output_video_ext}"],   
-                stdout=subprocess.DEVNULL,                                  # Se concatena el video sin audio con el audio traducido
-                stderr=subprocess.STDOUT)
-    
-    video_subtitled = filename + "_subtitled." + output_video_ext
-    print("Video subtitulado: ",video_subtitled)
-    return video_subtitled
-
-def get_length_video(filename):
-    result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
-                             "format=duration", "-of",
-                             "default=noprint_wrappers=1:nokey=1", filename],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT)
-    return float(result.stdout)
-
 # *************************** MAIN ***************************
 # ************************** ROUTER **************************
 # ROUTER: Función para transcribir video, audio y texto al lenguaje seleccionado
 def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_upload, video_file_webcam, audio_file_microphone, text_input):
-    #delete_cache()
-    if video_file_webcam:
-        print("PROCESANDO GRABACIÓN VIDEO DE LA WEBCAM")
-        print("Traduciendo el video grabado: " + video_file_webcam + " al idioma " + lang_input)
-        text_transcribed = convert_video_to_text_app(lang_input,video_file_webcam)
-        text_translated = convert_text_to_text_app(lang_input, text_transcribed)
-        audio_traslated = text_to_audio(text_transcribed, lang_input)
-        video_subtitled = convert_video_to_video_subtitled_app(video_file_webcam, text_translated)
-        video_traslated = convert_video_to_video_app(video_file_webcam, audio_traslated)
-        print("FIN PROCESO GRABACIÓN VIDEO DE LA WEBCAM")
-        return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
-    if audio_file_microphone:
-        print("PROCESANDO GRABACIÓN AUDIO DEL MICRÓFONO")
-        print("Traduciendo el audio grabado " + audio_file_microphone + " al idioma " + lang_input)
-        text_transcribed, audio_traslated = convert_audio_to_audio_app(lang_input,audio_file_microphone)
-        text_translated = convert_text_to_text_app(lang_input, text_transcribed)
-        video_subtitled = None
-        video_traslated = None
-        print("FIN PROCESO GRABACIÓN AUDIO DEL MICRÓFONO")
-        return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
     if video_file_upload:
         print("PROCESANDO ARCHIVO DE VIDEO")
         print("Traduciendo el video ingresado " + video_file_upload + " al idioma " + lang_input)
         text_transcribed = convert_video_to_text_app(lang_input,video_file_upload)
         text_translated = convert_text_to_text_app(lang_input, text_transcribed)
         audio_traslated = text_to_audio(text_transcribed, lang_input)
-        video_subtitled = convert_video_to_video_subtitled_app(video_file_upload, text_translated)
         video_traslated = convert_video_to_video_app(video_file_upload, audio_traslated)
         print("FIN PROCESO ARCHIVO DE VIDEO")
-        return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
-    if audio_file_upload:
-        print("PROCESANDO ARCHIVO DE AUDIO")
-        print("Traduciendo el audio ingresado " + audio_file_upload + " al idioma " + lang_input)
-        text_transcribed, audio_traslated = convert_audio_to_audio_app(lang_input,audio_file_upload)
-        text_translated = convert_text_to_text_app(lang_input, text_transcribed)
-        video_subtitled = None
-        video_traslated = None
-        print("FIN PROCESO ARCHIVO DE AUDIO")
-        return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
-    else:
-        print("PROCESANDO TEXTO INGRESADO")
-        text_translated = convert_text_to_text_app(lang_input, text_input)
-        audio_traslated = text_to_audio(text_input, lang_input)
-        video_subtitled = None
-        video_traslated = None
-        print("FIN PROCESO TEXTO INGRESADO")
-        return text_input, text_translated, audio_traslated, video_subtitled, video_traslated
+        return text_transcribed, text_translated, audio_traslated, video_traslated
 
 # *************************** SERVICIOS ***************************
 # t2t: Traducir el texto a texto en el idioma deseado
@@ -228,18 +128,11 @@ def convert_video_to_video_app(video_file, audio_file_traslated, output_video_ex
     video_traslated = video_to_video(video_file, audio_file_traslated, output_video_ext)
     return video_traslated
 
-# v2vs: Convertir video a video subtitulado
-def convert_video_to_video_subtitled_app(video_file, text_translated, output_video_ext="webm"):
-    print("Procesando video " + video_file + " para subtitularlo...")
-    video_subtitled = video_to_video_subtitled(video_file, text_translated, output_video_ext)
-    return video_subtitled
 
 # *************************** INTERFAZ ***************************
 # Entradas y salidas en la interfaz Gradio
 lang_input = gr.inputs.Dropdown(choices=[lang["lang"] for lang in langs], label="Selecciona el idioma al cual deseas traducir:")
-
-video_input_file = gr.Video(label= "Noticias Caracol", value="https://www.caracoltv.com/senal-vivo", type="mp4")
-#video_input_file = gr.Video(label= "Noticias Caracol", value="D:/Noticias/noticias_caracol_small.mp4", type="mp4")
+video_input_file = gr.Video(label= "Noticias Caracol", value="D:/Noticias/noticias_caracol_lenta.mp4", type="mp4")
 #video_input_file = gr.Video(label= "Noticias Caracol", source="upload", type="mp4")
 video_input_webcam = gr.Video(label= "Noticias Caracol en vivo", type="mp4", source="webcam", include_audio=1, optional=1)
 audio_input_file = gr.Audio(label="Caracol Radio", source="upload", type="filepath")
@@ -251,15 +144,11 @@ output_audio = gr.outputs.Audio(label="Audio traducido", type='filepath')
 output_video_subtitled = gr.outputs.Video(label="Noticia subtitulada", type="webm")
 output_video_traslated = gr.outputs.Video(label="Noticia traducida", type="webm")
 
-embed_html = '<iframe width="560" height="315" src="https://www.youtube.com/embed/EngW7tLk6R8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
-with gr.Blocks() as interface:
-    gr.HTML(embed_html)
-
 # Crea la interfaz Gradio para multimedia_to_multimedia_app
 interface = gr.Interface(
     fn=multimedia_to_multimedia_app,
     inputs=[lang_input, video_input_file, audio_input_file, video_input_webcam, audio_input_microphone, text_input],
-    outputs=[output_text_transcribed, output_text_traslated, output_audio, output_video_subtitled, output_video_traslated],
+    outputs=[output_text_transcribed, output_text_traslated, output_audio, output_video_traslated],
     title="TRADUCTOR MULTILENGUA DE NOTICIAS | AYTÉ - GRUPO PRISA",
     description="Ingresa la noticia que deseas traducir:",
     #theme = gr.themes.Soft()
