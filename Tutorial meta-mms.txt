@@ -1,6 +1,9 @@
 https://www.youtube.com/watch?v=7K4b2S7X99w
 https://github.com/ikequan/meta-mms
 
+#Github proyecto
+https://github.com/AYTECOL/traductor-multilenguaje.git
+
 #Las librerias se instalan en:
 C:\Users\jorge\AppData\Local\Programs\Python\Python311\Scripts
 
@@ -11,6 +14,9 @@ C:\Users\jorge\AppData\Local\Temp\gradio\04300dd9108b391bd8a7984ab530b47d54bfec9
 https://github.com/wannaphong/ttsmms/blob/main/support_list.txt
 
 # Descargar e instalar Phyton si no está instalado
+Instalar en C:\Users\jorge\AppData\Local\Programs\Python\Python311\
+Pasar al directorio \Scripts para que tome el comando .\pip
+
 # Comprobar la instalacion de PIP:
 .\pip help
 
