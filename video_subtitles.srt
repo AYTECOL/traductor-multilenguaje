@@ -1,0 +1,15 @@
+1
+00:00:00,001 --> 00:00:01,000 --> 
+<b>Allinllachu Ancha allin</b>
+2
+00:00:01,001 --> 00:00:02,000 --> 
+<b>paqarin Allin hamusqaykichik</b>
+3
+00:00:02,001 --> 00:00:03,000 --> 
+<b>Caracol noticiakunaman kunan</b>
+4
+00:00:03,001 --> 00:00:04,000 --> 
+<b>punchaw 20 junio</b>
+5
+00:00:04,001 --> 00:00:05,000 --> 
+<b>killapi 2023 watapi</b>

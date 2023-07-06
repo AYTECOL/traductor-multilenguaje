@@ -7,6 +7,7 @@ import subprocess                                   # Librerias de video
 import os
 import time                                         # Librerias para manejo de tiempos
 
+import math
 import shutil                                       # Libreria para borrar archivos para limpiar la caché
 
 # Idioma de ingreso
@@ -97,9 +98,6 @@ def video_to_video(video_file, audio_file_traslated, output_video_ext):
                 stdout=subprocess.DEVNULL,                                  # Se extrae el video sin audio
                 stderr=subprocess.STDOUT)
     video_mute = filename + "_muted." + output_video_ext
-    video_length = get_length_video(video_file)
-    print("Duración del video: ",video_length)
- 
     subprocess.call(["ffmpeg", "-y", "-i", video_mute, "-i", audio_file_traslated, "-shortest", f"{filename+'_traslated'}.{output_video_ext}"],   
                 stdout=subprocess.DEVNULL,                                  # Se concatena el video sin audio con el audio traducido
                 stderr=subprocess.STDOUT)
@@ -113,19 +111,34 @@ def video_to_video_subtitled(video_file, text_traslated, output_video_ext):
     filename, ext = os.path.splitext(video_file)                            # Se extrae el nombre del archivo y su extensión   
     #filedir = os.path.dirname(video_file)
     #subtitles_file = open(f"{filename+'_subtitles'}.srt","w+")
-    subtitles_file = open(f"{'video_subtitles'}.srt","w+")
-    for i in range(len(subtitles)):
+    length_video = get_length_video(video_file)
+    length_line_subtitle = math.ceil(len(subtitles)/length_video)           # Rate de palabras por segundo de video
+    i=0
+    j=0
+    subtitles_line = []
+    while i < length_video//length_line_subtitle:                           # Ciclo para timming de subtítulos
+        while j < len(subtitles):
+            line = ' '.join(subtitles[j:j+length_line_subtitle])            # Concatena palabras en una frase de acuerdo al rate de palabras
+            subtitles_line.append(line)                                     # Inserta la frase en el vector final de subtítulos
+            j += length_line_subtitle
+        i += 1
+
+    subtitles_file = open(f"{'video_subtitles'}.srt","w+")                  # Se genera el archivo de subtítulos .srt
+    i=0
+    while i < len(subtitles_line):
         subtitles_content = (''''''+str(i+1)+'''
-'''+ time.strftime('%H:%M:%S', time.gmtime(i)) + ''',001 --> ''' + time.strftime('%H:%M:%S', time.gmtime(i+1)) + ''',001 --> ''' +
+'''+ time.strftime('%H:%M:%S', time.gmtime(i)) + ''',001 --> ''' + time.strftime('%H:%M:%S', time.gmtime(i+1)) + ''',000 --> ''' +
 '''
-''''''<b>'''+ subtitles[i] + '''</b>'''
+''''''<b>'''+ subtitles_line[i] +'''</b>'''
 '''
 ''')
         subtitles_file.write(subtitles_content)
+        i += 1
+
     subtitles_file.close()
     #subtitles_file = filename + "_subtitles.srt"
-    subprocess.call(["ffmpeg", "-y", "-copyts", "-i", video_file, "-vf", "subtitles=video_subtitles.srt:force_style='Fontname=Futura,Fontsize=20,PrimaryColour=FFFFFF,MarginV=25'", f"{filename+'_subtitled'}.{output_video_ext}"],   
-                stdout=subprocess.DEVNULL,                                  # Se concatena el video sin audio con el audio traducido
+    subprocess.call(["ffmpeg", "-y", "-copyts", "-i", video_file, "-vf", "subtitles=video_subtitles.srt:force_style='Fontname=Futura,Fontsize=20,MarginV=50,Shadow=1'", f"{filename+'_subtitled'}.{output_video_ext}"],   
+                stdout=subprocess.DEVNULL,                                  # Se insertan los subtitulos al video con el audio original
                 stderr=subprocess.STDOUT)
     
     video_subtitled = filename + "_subtitled." + output_video_ext
@@ -237,12 +250,11 @@ def convert_video_to_video_subtitled_app(video_file, text_translated, output_vid
 # *************************** INTERFAZ ***************************
 # Entradas y salidas en la interfaz Gradio
 lang_input = gr.inputs.Dropdown(choices=[lang["lang"] for lang in langs], label="Selecciona el idioma al cual deseas traducir:")
-
-video_input_file = gr.Video(label= "Noticias Caracol", value="https://www.caracoltv.com/senal-vivo", type="mp4")
-#video_input_file = gr.Video(label= "Noticias Caracol", value="D:/Noticias/noticias_caracol_small.mp4", type="mp4")
+#video_input_file = gr.Video(label= "Noticias Caracol", value="https://www.caracoltv.com/senal-vivo")
+video_input_file = gr.Video(label= "Noticias Caracol", value="D:/Noticias/noticias_caracol_1.mp4", type="mp4")
 #video_input_file = gr.Video(label= "Noticias Caracol", source="upload", type="mp4")
 video_input_webcam = gr.Video(label= "Noticias Caracol en vivo", type="mp4", source="webcam", include_audio=1, optional=1)
-audio_input_file = gr.Audio(label="Caracol Radio", source="upload", type="filepath")
+audio_input_file = gr.Audio(label="Caracol Radio", value="D:/Noticias/caracol_radio.mp3", type="filepath")
 audio_input_microphone = gr.Audio(label="Caracol Radio en vivo", source="microphone", type="filepath")
 text_input = gr.inputs.Textbox(label="Noticia a traducir:")
 output_text_transcribed = gr.outputs.Textbox(label="Transcripción")
