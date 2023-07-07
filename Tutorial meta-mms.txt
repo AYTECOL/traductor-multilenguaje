@@ -26,6 +26,9 @@ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 py get-pip.py
 # Agregar el PATH de la instalación en las variables de entorno y colocarlo al inicio de la lista
 
+# Si no está instalado Microsoft Visual C++ 14.0 or greater instalarlo de:
+https://visualstudio.microsoft.com/visual-cpp-build-tools/
+seleccionando las utilidades para desktop windows
 
 # Instalar transformers:
 .\pip install torch datasets[audio]
@@ -33,6 +36,9 @@ py get-pip.py
 
 # Instalar los complementos necesarios para la aplicación:
 .\pip install gradio SpeechRecognition ttsmms deep_translator
+
+# instalar ffmpeg mediante cmd como administrador:
+choco install ffmpeg
 
 # Comprobar ISO de idiomas disponibles:
 https://dl.fbaipublicfiles.com/mms/tts/all-tts-languages.html
@@ -47,9 +53,7 @@ https://dl.fbaipublicfiles.com/mms/tts/full_model/quz.tar.gz  #Quechua Cuzco (qu
 /meta-mms/data/spa/
 /meta-mms/data/eng/
 
-# instalar ffmpeg mediante cmd como administrador:
-choco install ffmpeg
-
+# Comandos procesamiento de Audio y Video
 # extraer audio de un video
 ffmpeg -y -i input.mp4 -ar 16000 -ac 1 output_audio.wav 
 
