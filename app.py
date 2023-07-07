@@ -47,15 +47,21 @@ def delete_cache():
 # *************************** MÉTODOS ***************************     
 # TEXT TO TEXT: Función que convierte texto a texto
 def text_to_text(text, lang):
+    tiempo = time.ctime().split()
+    print(tiempo[3] + " - Traduciendo el texto a texto en el idioma seleccionado...")
+
     selected_lang = next((lang_item for lang_item in langs if lang_item["lang"] == lang), None)   # Busca el idioma seleccionado en la lista de idiomas disponibles
     if selected_lang is None:
         raise ValueError(f"Lenguaje '{lang}' no disponible.")
     text_translated = GoogleTranslator(source='auto', target=lang).translate(text)   # Traduce el texto al idioma seleccionado usando Google Translator
-    print("Texto traducido: "+text_translated)
+    tiempo = time.ctime().split()
+    print(tiempo[3] + " - Texto traducido: " + text_translated)
     return text_translated
 
 # TEXT TO AUDIO: Función que convierte texto a audio
 def text_to_audio(text, lang):
+    tiempo = time.ctime().split()
+    print(tiempo[3] + " - Convirtiendo el texto extraido a audio en el idioma seleccionado...")
     selected_lang = next((lang_item for lang_item in langs if lang_item["lang"] == lang), None)   # Busca el idioma seleccionado en la lista de idiomas disponibles
     if selected_lang is None:
         raise ValueError(f"Lenguaje '{lang}' no disponible.")
@@ -63,17 +69,22 @@ def text_to_audio(text, lang):
     text_translated = text_to_text(text, lang)                                       # Traduce el texto al idioma seleccionado usando Google Translator
     wav_path = "output.wav"
     selected_tts.synthesis(text_translated, wav_path=wav_path)                       # Genera el audio y lo graba como un archivo WAV
-    print("Audio traducido generado.")
-    return wav_path
+    tiempo = time.ctime().split()
+    print(tiempo[3] + " - Audio traducido generado: ",wav_path)
+    return wav_path, text_translated
 
 # AUDIO TO TEXT: Función que convierte audio a texto usando Google's speech recognition API
 def audio_to_text(audio_file):
+    tiempo = time.ctime().split()
+    print(tiempo[3] + " - Convirtiendo el audio a texto...")
+
     r = sr.Recognizer()
     with sr.AudioFile(audio_file) as source:
         audio = r.record(source)
     try:
         text = r.recognize_google(audio, language=input_language)
-        print("Reconocimiento de audio obtenido: ",text)
+        tiempo = time.ctime().split()
+        print(tiempo[3] + " - Reconocimiento de texto obtenido del audio: ",text)
         return text
     except sr.UnknownValueError:
         print("Google Speech Recognition no pudo transcribir el audio.")
@@ -84,29 +95,44 @@ def audio_to_text(audio_file):
 
 # VIDEO TO AUDIO: Función que extrae el audio del video
 def video_to_audio(video_file, output_audio_ext):
+    tiempo = time.ctime().split()
+    print(tiempo[3] + " - Extrayendo el audio del video...")
+
     filename, ext = os.path.splitext(video_file)                            # Se extrae el nombre del archivo y su extensión
     subprocess.call(["ffmpeg", "-y", "-i", video_file, "-ar", "16000", "-ac", "1", f"{filename+'_audio'}.{output_audio_ext}"],  # Se extrae el archivo de audio del video
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.STDOUT)
-    audio_video = filename + "_audio." + output_audio_ext  
+    audio_video = filename + "_audio." + output_audio_ext
+    tiempo = time.ctime().split()
+    print(tiempo[3] + " - Audio extraido: ",audio_video)
     return audio_video
 
 # VIDEO TO VIDEO: Función que concatena audio con el video traducido
 def video_to_video(video_file, audio_file_traslated, output_video_ext):
+    tiempo = time.ctime().split()
+    print(tiempo[3] + " - Procesando el video para obtenerlo sin audio...")
+
     filename, ext = os.path.splitext(video_file)                            # Se extrae el nombre del archivo y su extensión   
     subprocess.call(["ffmpeg", "-y", "-i", video_file, "-an", f"{filename+'_muted'}.{output_video_ext}"],   
                 stdout=subprocess.DEVNULL,                                  # Se extrae el video sin audio
                 stderr=subprocess.STDOUT)
     video_mute = filename + "_muted." + output_video_ext
+
+    tiempo = time.ctime().split()
+    print(tiempo[3] + " - Doblando el video con el audio traducido...")
     subprocess.call(["ffmpeg", "-y", "-i", video_mute, "-i", audio_file_traslated, "-shortest", f"{filename+'_traslated'}.{output_video_ext}"],   
                 stdout=subprocess.DEVNULL,                                  # Se concatena el video sin audio con el audio traducido
                 stderr=subprocess.STDOUT)
     video_traslated = filename + "_traslated." + output_video_ext
-    print("Video traducido: ",video_traslated)
+    tiempo = time.ctime().split()
+    print(tiempo[3] + " - Video traducido: ",video_traslated)
     return video_traslated
 
 # VIDEO TO VIDEO SUBTITULADO: Función que coloca subtitulos traducidos al video
 def video_to_video_subtitled(video_file, text_traslated, output_video_ext):
+    tiempo = time.ctime().split()
+    print(tiempo[3] + " - Procesando el video subtitulado...")
+
     subtitles = text_traslated.split()
     filename, ext = os.path.splitext(video_file)                            # Se extrae el nombre del archivo y su extensión   
     #filedir = os.path.dirname(video_file)
@@ -142,7 +168,8 @@ def video_to_video_subtitled(video_file, text_traslated, output_video_ext):
                 stderr=subprocess.STDOUT)
     
     video_subtitled = filename + "_subtitled." + output_video_ext
-    print("Video subtitulado: ",video_subtitled)
+    tiempo = time.ctime().split()
+    print(tiempo[3] + " - Video subtitulado: ",video_subtitled)
     return video_subtitled
 
 def get_length_video(filename):
@@ -158,48 +185,45 @@ def get_length_video(filename):
 # ROUTER: Función para transcribir video, audio y texto al lenguaje seleccionado
 def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_upload, video_file_webcam, audio_file_microphone, text_input):
     #delete_cache()
+    tiempo = time.ctime().split()
     if video_file_webcam:
         print("PROCESANDO GRABACIÓN VIDEO DE LA WEBCAM")
-        print("Traduciendo el video grabado: " + video_file_webcam + " al idioma " + lang_input)
+        print(tiempo[3] + " - Traduciendo el video grabado: " + video_file_webcam + " al idioma " + lang_input)
         text_transcribed = convert_video_to_text_app(lang_input,video_file_webcam)
-        text_translated = convert_text_to_text_app(lang_input, text_transcribed)
-        audio_traslated = text_to_audio(text_transcribed, lang_input)
+        audio_traslated, text_translated = text_to_audio(text_transcribed, lang_input)
         video_subtitled = convert_video_to_video_subtitled_app(video_file_webcam, text_translated)
         video_traslated = convert_video_to_video_app(video_file_webcam, audio_traslated)
         print("FIN PROCESO GRABACIÓN VIDEO DE LA WEBCAM")
         return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
     if audio_file_microphone:
         print("PROCESANDO GRABACIÓN AUDIO DEL MICRÓFONO")
-        print("Traduciendo el audio grabado " + audio_file_microphone + " al idioma " + lang_input)
-        text_transcribed, audio_traslated = convert_audio_to_audio_app(lang_input,audio_file_microphone)
-        text_translated = convert_text_to_text_app(lang_input, text_transcribed)
+        print(tiempo[3] + " - Traduciendo el audio grabado " + audio_file_microphone + " al idioma " + lang_input)
+        text_translated, text_transcribed, audio_traslated = convert_audio_to_audio_app(lang_input,audio_file_microphone)
         video_subtitled = None
         video_traslated = None
         print("FIN PROCESO GRABACIÓN AUDIO DEL MICRÓFONO")
         return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
     if video_file_upload:
         print("PROCESANDO ARCHIVO DE VIDEO")
-        print("Traduciendo el video ingresado " + video_file_upload + " al idioma " + lang_input)
+        print(tiempo[3] + " - Traduciendo el video ingresado " + video_file_upload + " al idioma " + lang_input)
         text_transcribed = convert_video_to_text_app(lang_input,video_file_upload)
-        text_translated = convert_text_to_text_app(lang_input, text_transcribed)
-        audio_traslated = text_to_audio(text_transcribed, lang_input)
+        audio_traslated, text_translated = text_to_audio(text_transcribed, lang_input)
         video_subtitled = convert_video_to_video_subtitled_app(video_file_upload, text_translated)
         video_traslated = convert_video_to_video_app(video_file_upload, audio_traslated)
         print("FIN PROCESO ARCHIVO DE VIDEO")
         return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
     if audio_file_upload:
         print("PROCESANDO ARCHIVO DE AUDIO")
-        print("Traduciendo el audio ingresado " + audio_file_upload + " al idioma " + lang_input)
-        text_transcribed, audio_traslated = convert_audio_to_audio_app(lang_input,audio_file_upload)
-        text_translated = convert_text_to_text_app(lang_input, text_transcribed)
+        print(tiempo[3] + " - Traduciendo el audio ingresado " + audio_file_upload + " al idioma " + lang_input)
+        text_translated, text_transcribed, audio_traslated = convert_audio_to_audio_app(lang_input,audio_file_upload)
         video_subtitled = None
         video_traslated = None
         print("FIN PROCESO ARCHIVO DE AUDIO")
         return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
     else:
         print("PROCESANDO TEXTO INGRESADO")
-        text_translated = convert_text_to_text_app(lang_input, text_input)
-        audio_traslated = text_to_audio(text_input, lang_input)
+        print(tiempo[3] + " - Traduciendo el texto ingresado " + text_input + " al idioma " + lang_input)
+        audio_traslated, text_translated = text_to_audio(text_input, lang_input)
         video_subtitled = None
         video_traslated = None
         print("FIN PROCESO TEXTO INGRESADO")
@@ -209,7 +233,7 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
 # t2t: Traducir el texto a texto en el idioma deseado
 def convert_text_to_text_app(lang_input, text_to_translate):
     if text_to_translate:
-        print("Traduciendo text " + text_to_translate + " al idioma " + lang_input)
+        print("Traduciendo texto " + text_to_translate + " al idioma " + lang_input)
         text_translated = text_to_text(text_to_translate, lang_input)
         return text_translated 
 
@@ -224,9 +248,9 @@ def convert_audio_to_text_app(lang_input, audio_file):
 def convert_audio_to_audio_app(lang_input, audio_file):
     if audio_file:
         print("Traduciendo audio " + audio_file + " al idioma deseado...")
-        text_translated = audio_to_text(audio_file)
-        audio_traslated = text_to_audio(text_translated, lang_input)
-        return text_translated, audio_traslated 
+        text_transcribed = audio_to_text(audio_file)
+        audio_traslated, text_translated = text_to_audio(text_transcribed, lang_input)
+        return text_translated, text_transcribed, audio_traslated
 
 # v2t: Convertir video a audio usando 'ffmpeg' con módulo 'subprocess'
 def convert_video_to_text_app(lang_input,video_file, output_audio_ext="wav"):
@@ -263,9 +287,11 @@ output_audio = gr.outputs.Audio(label="Audio traducido", type='filepath')
 output_video_subtitled = gr.outputs.Video(label="Noticia subtitulada", type="webm")
 output_video_traslated = gr.outputs.Video(label="Noticia traducida", type="webm")
 
+"""""""""
 embed_html = '<iframe width="560" height="315" src="https://www.youtube.com/embed/EngW7tLk6R8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
 with gr.Blocks() as interface:
     gr.HTML(embed_html)
+"""""""""
 
 # Crea la interfaz Gradio para multimedia_to_multimedia_app
 interface = gr.Interface(
