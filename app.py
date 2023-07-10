@@ -275,10 +275,10 @@ def convert_video_to_video_subtitled_app(video_file, text_translated, output_vid
 # Entradas y salidas en la interfaz Gradio
 lang_input = gr.inputs.Dropdown(choices=[lang["lang"] for lang in langs], label="Selecciona el idioma al cual deseas traducir:")
 #video_input_file = gr.Video(label= "Noticias Caracol", value="https://www.caracoltv.com/senal-vivo")
-video_input_file = gr.Video(label= "Noticias Caracol", value="D:/Noticias/noticias_caracol_1.mp4", type="mp4")
+video_input_file = gr.Video(label= "Noticias Caracol", value="C:/Noticias/noticias_caracol_1.mp4", type="mp4")
 #video_input_file = gr.Video(label= "Noticias Caracol", source="upload", type="mp4")
 video_input_webcam = gr.Video(label= "Noticias Caracol en vivo", type="mp4", source="webcam", include_audio=1, optional=1)
-audio_input_file = gr.Audio(label="Caracol Radio", value="D:/Noticias/caracol_radio.mp3", type="filepath")
+audio_input_file = gr.Audio(label="Caracol Radio", value="C:/Noticias/caracol_radio.mp3", type="filepath")
 audio_input_microphone = gr.Audio(label="Caracol Radio en vivo", source="microphone", type="filepath")
 text_input = gr.inputs.Textbox(label="Noticia a traducir:")
 output_text_transcribed = gr.outputs.Textbox(label="Transcripción")
