@@ -3,11 +3,13 @@ import speech_recognition as sr                     # Libreria de Audio
 from ttsmms import TTS
 from deep_translator import GoogleTranslator
 
-import subprocess                                   # Librerias de video 
+import subprocess                                   # Libreria para procesamiento de comandos cmd para video 
 import os
-import time                                         # Librerias para manejo de tiempos
+import time                                         # Libreria para manejo de tiempos
+import math                                         # Libreria matemática, usada para redondeo de cifras
+from threading import Thread                        # Librería para manejo de Hilos de procesamiento
+from queue import Queue
 
-import math
 import shutil                                       # Libreria para borrar archivos para limpiar la caché
 
 # Idioma de ingreso
@@ -20,7 +22,8 @@ misak = TTS("data/gum")      #misak
 quechua = TTS("data/quz")    #quechua
 
 # Crea la lista de idiomas soportados para traducir y su modelo TTS correspondiente
-langs = [{"lang": 'spanish', "tts": spanish}, {"lang": 'english', "tts": english}, {"lang": 'guarani', "tts": misak}, {"lang": 'quechua', "tts": quechua}]
+#langs = [{"lang": 'spanish', "tts": spanish}, {"lang": 'english', "tts": english}, {"lang": 'guarani', "tts": misak}, {"lang": 'quechua', "tts": quechua}]
+langs = [{"lang": 'english', "tts": english}, {"lang": 'quechua', "tts": quechua}, {"lang": 'spanish', "tts": spanish}]
 
 # *************************** BORRRAR CACHE ***************************     
 def delete_cache():
@@ -205,8 +208,18 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
         logs_file.write(tiempo[3] + " - Traduciendo el video grabado: " + video_file_webcam + " al idioma " + lang_input + "\n")
         text_transcribed = convert_video_to_text_app(lang_input, video_file_webcam, logs_file)
         audio_traslated, text_translated = text_to_audio(text_transcribed, lang_input, logs_file)
-        video_subtitled = convert_video_to_video_subtitled_app(video_file_webcam, text_translated, logs_file)
-        video_traslated = convert_video_to_video_app(video_file_webcam, audio_traslated, logs_file)
+        #video_subtitled = convert_video_to_video_subtitled_app(video_file_webcam, text_translated, logs_file)
+        #video_traslated = convert_video_to_video_app(video_file_webcam, audio_traslated, logs_file)
+        return_video_subtitled = [None]*1
+        return_video_traslated = [None]*1
+        hilo_video_subtitled = Thread(target=convert_video_to_video_subtitled_app, args=(video_file_webcam, text_translated,logs_file,return_video_subtitled,))
+        hilo_video_traslated = Thread(target=convert_video_to_video_app, args=(video_file_webcam, audio_traslated,logs_file,return_video_traslated,))
+        hilo_video_subtitled.start()
+        hilo_video_traslated.start()
+        hilo_video_subtitled.join()
+        hilo_video_traslated.join()
+        video_subtitled = return_video_subtitled[0]
+        video_traslated = return_video_traslated[0]
         print("FIN PROCESO GRABACIÓN VIDEO DE LA WEBCAM")
         logs_file.write("FIN PROCESO GRABACIÓN VIDEO DE LA WEBCAM\n")
         logs_file.close()
@@ -230,8 +243,19 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
         logs_file.write(tiempo[3] + " - Traduciendo el video ingresado " + video_file_upload + " al idioma " + lang_input + "\n")
         text_transcribed = convert_video_to_text_app(lang_input,video_file_upload,logs_file)
         audio_traslated, text_translated = text_to_audio(text_transcribed, lang_input,logs_file)
-        video_subtitled = convert_video_to_video_subtitled_app(video_file_upload, text_translated,logs_file)
-        video_traslated = convert_video_to_video_app(video_file_upload, audio_traslated,logs_file)
+        #video_subtitled = convert_video_to_video_subtitled_app(video_file_upload, text_translated,logs_file)
+        #video_traslated = convert_video_to_video_app(video_file_upload, audio_traslated,logs_file)
+        return_video_subtitled = [None]*1
+        return_video_traslated = [None]*1
+        hilo_video_subtitled = Thread(target=convert_video_to_video_subtitled_app, args=(video_file_upload, text_translated,logs_file,return_video_subtitled,))
+        hilo_video_traslated = Thread(target=convert_video_to_video_app, args=(video_file_upload, audio_traslated,logs_file,return_video_traslated,))
+        hilo_video_subtitled.start()
+        hilo_video_traslated.start()
+        hilo_video_subtitled.join()
+        hilo_video_traslated.join()
+        video_subtitled = return_video_subtitled[0]
+        video_traslated = return_video_traslated[0]
+
         print("FIN PROCESO ARCHIVO DE VIDEO")
         logs_file.write("FIN PROCESO ARCHIVO DE VIDEO\n")
         logs_file.close()
@@ -296,18 +320,20 @@ def convert_video_to_text_app(lang_input,video_file, logs_file, output_audio_ext
     return text_translated
 
 # v2v: Convertir video a video
-def convert_video_to_video_app(video_file, audio_file_traslated, logs_file, output_video_ext="webm"):
+def convert_video_to_video_app(video_file, audio_file_traslated, logs_file, return_video_traslated, output_video_ext="webm"):
     print("Procesando video " + video_file + " para traducirlo...")
     logs_file.write("Procesando video " + video_file + " para traducirlo...\n")
     video_traslated = video_to_video(video_file, audio_file_traslated, output_video_ext,logs_file)
-    return video_traslated
+    return_video_traslated[0] = video_traslated
+    #return video_traslated
 
 # v2vs: Convertir video a video subtitulado
-def convert_video_to_video_subtitled_app(video_file, text_translated, logs_file, output_video_ext="webm"):
+def convert_video_to_video_subtitled_app(video_file, text_translated, logs_file, return_video_subtitled, output_video_ext="webm"):
     print("Procesando video " + video_file + " para subtitularlo...")
     logs_file.write("Procesando video " + video_file + " para subtitularlo...\n")
     video_subtitled = video_to_video_subtitled(video_file, text_translated, output_video_ext, logs_file)
-    return video_subtitled
+    return_video_subtitled[0] = video_subtitled
+    #return video_subtitled
 
 # *************************** INTERFAZ ***************************
 # Entradas y salidas en la interfaz Gradio
