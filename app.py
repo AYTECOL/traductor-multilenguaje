@@ -8,9 +8,6 @@ import os
 import time                                         # Libreria para manejo de tiempos
 import math                                         # Libreria matemática, usada para redondeo de cifras
 from threading import Thread                        # Librería para manejo de Hilos de procesamiento
-from queue import Queue
-
-import shutil                                       # Libreria para borrar archivos para limpiar la caché
 
 # Idioma de ingreso
 input_language = 'es-ES'
@@ -24,28 +21,6 @@ quechua = TTS("data/quz")    #quechua
 # Crea la lista de idiomas soportados para traducir y su modelo TTS correspondiente
 #langs = [{"lang": 'spanish', "tts": spanish}, {"lang": 'english', "tts": english}, {"lang": 'guarani', "tts": misak}, {"lang": 'quechua', "tts": quechua}]
 langs = [{"lang": 'english', "tts": english}, {"lang": 'quechua', "tts": quechua}, {"lang": 'spanish', "tts": spanish}]
-
-# *************************** BORRRAR CACHE ***************************     
-def delete_cache():
-    print("Borrando cache: ",os.getcwd())
-    #shutil.rmtree('C:/Users/jorge/AppData/Local/Temp/gradio/')
-"""""""""
-    path = 'C:/Users/jorge/AppData/Local/Temp/gradio/'
-    # checking whether the file is present in path or not
-    if os.path.exists(path):
-        for root_folder, folders, files in os.walk(path):               # iterating over each and every folder and file in the path
-            # checking folder from the root_folder
-            for folder in folders:
-                folder_path = os.path.join(root_folder, folder)         # folder path
-                shutil.rmtree(folder_path)                              # invoking the remove_folder function
-
-            # checking the current directory files
-            for file in files:          
-                file_path = os.path.join(root_folder, file)             # file path
-                shutil.rmtree(file_path)                                # invoking the remove_file function
-    else:
-        print(f'"{path}" is not found')                 # file/folder is not found
-"""""""""
 
 # *************************** MÉTODOS ***************************     
 # TEXT TO TEXT: Función que convierte texto a texto
@@ -197,11 +172,10 @@ def get_length_video(filename):
 # ************************** ROUTER **************************
 # ROUTER: Función para transcribir video, audio y texto al lenguaje seleccionado
 def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_upload, video_file_webcam, audio_file_microphone, text_input):
-    #delete_cache()
     tiempo = time.ctime().split()
     logs_file = open("logs.txt","w+")
     logs_file.write("LOGS TRADUCTOR MULTILENGUAJE\n")
-    if video_file_webcam:
+    if video_file_webcam and lang_input:
         print("PROCESANDO GRABACIÓN VIDEO DE LA WEBCAM")
         logs_file.write("PROCESANDO GRABACIÓN VIDEO DE LA WEBCAM\n")
         print(tiempo[3] + " - Traduciendo el video grabado: " + video_file_webcam + " al idioma " + lang_input)
@@ -224,7 +198,7 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
         logs_file.write("FIN PROCESO GRABACIÓN VIDEO DE LA WEBCAM\n")
         logs_file.close()
         return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
-    if audio_file_microphone:
+    if audio_file_microphone and lang_input:
         print("PROCESANDO GRABACIÓN AUDIO DEL MICRÓFONO")
         logs_file.write("PROCESANDO GRABACIÓN AUDIO DEL MICRÓFONO\n")
         print(tiempo[3] + " - Traduciendo el audio grabado " + audio_file_microphone + " al idioma " + lang_input)
@@ -236,7 +210,7 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
         logs_file.write("FIN PROCESO GRABACIÓN AUDIO DEL MICRÓFONO\n")
         logs_file.close()
         return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
-    if video_file_upload:
+    if video_file_upload and lang_input:
         print("PROCESANDO ARCHIVO DE VIDEO")
         logs_file.write("PROCESANDO ARCHIVO DE VIDEO\n")
         print(tiempo[3] + " - Traduciendo el video ingresado " + video_file_upload + " al idioma " + lang_input)
@@ -260,7 +234,7 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
         logs_file.write("FIN PROCESO ARCHIVO DE VIDEO\n")
         logs_file.close()
         return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
-    if audio_file_upload:
+    if audio_file_upload and lang_input:
         print("PROCESANDO ARCHIVO DE AUDIO")
         logs_file.write("PROCESANDO ARCHIVO DE AUDIO\n")
         print(tiempo[3] + " - Traduciendo el audio ingresado " + audio_file_upload + " al idioma " + lang_input)
@@ -272,7 +246,7 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
         logs_file.write("FIN PROCESO ARCHIVO DE AUDIO\n")
         logs_file.close()
         return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
-    else:
+    if text_input and lang_input:
         print("PROCESANDO TEXTO INGRESADO")
         logs_file.write("PROCESANDO TEXTO INGRESADO\n")
         print(tiempo[3] + " - Traduciendo el texto ingresado " + text_input + " al idioma " + lang_input)
@@ -284,7 +258,10 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
         logs_file.write("FIN PROCESO TEXTO INGRESADO\n")
         logs_file.close()
         return text_input, text_translated, audio_traslated, video_subtitled, video_traslated
-
+    if not lang_input:
+        print("Error - Lenguaje no ingresado")
+        raise gr.Error("Debes ingresar el idioma a traducir")
+    
 # *************************** SERVICIOS ***************************
 # t2t: Traducir el texto a texto en el idioma deseado
 def convert_text_to_text_app(lang_input, text_to_translate, logs_file):
@@ -292,7 +269,7 @@ def convert_text_to_text_app(lang_input, text_to_translate, logs_file):
         print("Traduciendo texto " + text_to_translate + " al idioma " + lang_input)
         logs_file.write("Traduciendo texto " + text_to_translate + " al idioma " + lang_input + "\n")
         text_translated = text_to_text(text_to_translate, lang_input, logs_file)
-        return text_translated 
+        return text_translated
 
 # a2t: Transcribir el audio a texto
 def convert_audio_to_text_app(lang_input, audio_file, logs_file):
@@ -307,7 +284,7 @@ def convert_audio_to_audio_app(lang_input, audio_file, logs_file):
     if audio_file:
         print("Traduciendo audio " + audio_file + " al idioma deseado...")
         logs_file.write("Traduciendo audio " + audio_file + " al idioma deseado...\n")
-        text_transcribed = audio_to_text(audio_file)
+        text_transcribed = audio_to_text(audio_file, logs_file)
         audio_traslated, text_translated = text_to_audio(text_transcribed, lang_input, logs_file)
         return text_translated, text_transcribed, audio_traslated
 
@@ -337,13 +314,13 @@ def convert_video_to_video_subtitled_app(video_file, text_translated, logs_file,
 
 # *************************** INTERFAZ ***************************
 # Entradas y salidas en la interfaz Gradio
-lang_input = gr.inputs.Dropdown(choices=[lang["lang"] for lang in langs], label="Selecciona el idioma al cual deseas traducir:")
+lang_input = gr.inputs.Dropdown(choices=[lang["lang"] for lang in langs], label="Selecciona el idioma al cual deseas traducir:*")
 #video_input_file = gr.Video(label= "Noticias Caracol", value="https://www.caracoltv.com/senal-vivo")
-video_input_file = gr.Video(label= "Noticias Caracol", value="D:/Noticias/noticias_caracol_1.mp4", type="mp4")
+video_input_file = gr.Video(label= "Noticias Caracol", value="D:/Noticias/noticias_caracol_long.mp4", type="mp4")
 #video_input_file = gr.Video(label= "Noticias Caracol", source="upload", type="mp4")
 video_input_webcam = gr.Video(label= "Noticias Caracol en vivo", type="mp4", source="webcam", include_audio=1, optional=1)
-audio_input_file = gr.Audio(label="Caracol Radio", value="D:/Noticias/caracol_radio.mp3", type="filepath")
-audio_input_microphone = gr.Audio(label="Caracol Radio en vivo", source="microphone", type="filepath")
+audio_input_file = gr.Audio(label="Blue Radio", value="D:/Noticias/caracol_radio.mp3", type="filepath")
+audio_input_microphone = gr.Audio(label="Blue Radio en vivo", source="microphone", type="filepath")
 text_input = gr.inputs.Textbox(label="Noticia a traducir:")
 output_text_transcribed = gr.outputs.Textbox(label="Transcripción")
 output_text_traslated = gr.outputs.Textbox(label="Traducción")
@@ -362,10 +339,10 @@ interface = gr.Interface(
     fn=multimedia_to_multimedia_app,
     inputs=[lang_input, video_input_file, audio_input_file, video_input_webcam, audio_input_microphone, text_input],
     outputs=[output_text_transcribed, output_text_traslated, output_audio, output_video_subtitled, output_video_traslated],
-    title="TRADUCTOR MULTILENGUA DE NOTICIAS | AYTÉ - GRUPO PRISA",
+    title="TRADUCTOR MULTILENGUA DE NOTICIAS | AYTÉ - CARACOL",
     description="Ingresa la noticia que deseas traducir:",
     #theme = gr.themes.Soft()
-    #theme=gr.themes.Default(primary_hue="blue", secondary_hue="orange")
+    theme=gr.themes.Default(primary_hue="blue")
 )
-interface.launch()              # Lanza la interfaz
-#interface.launch(share=True, auth=("admin", "123"), server_name=("127.0.0.1"), server_port=(1111), favicon_path=())
+#interface.launch()              # Lanza la interfaz
+interface.launch(share=True, auth=("caracol", "caracol"), server_name=("127.0.0.1"), server_port=(7860), favicon_path=())
