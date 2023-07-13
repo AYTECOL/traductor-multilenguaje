@@ -11,6 +11,8 @@ from threading import Thread                        # Librería para manejo de H
 
 # Idioma de ingreso
 input_language = 'es-ES'
+output_audio_format = 'mp3'
+output_video_format = 'mp4'
 
 # Inicializa el modelo TTS para los idiomas soportados 
 spanish = TTS("data/spa")    #español
@@ -47,8 +49,8 @@ def text_to_audio(text, lang, logs_file):
         raise ValueError(f"Lenguaje '{lang}' no disponible.")
     selected_tts = selected_lang["tts"]
     text_translated = text_to_text(text, lang, logs_file)                                       # Traduce el texto al idioma seleccionado usando Google Translator
-    wav_path = "output.wav"
-    selected_tts.synthesis(text_translated, wav_path=wav_path)                       # Genera el audio y lo graba como un archivo WAV
+    wav_path = "audio_output." + output_audio_format
+    selected_tts.synthesis(text_translated, wav_path=wav_path)                                  # Genera el audio y lo graba como un archivo WAV
     tiempo = time.ctime().split()
     print(tiempo[3] + " - Audio traducido generado: ",wav_path)
     logs_file.write(tiempo[3] + " - Audio traducido generado: " + wav_path + "\n")
@@ -260,7 +262,7 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
         return text_input, text_translated, audio_traslated, video_subtitled, video_traslated
     if not lang_input:
         print("Error - Lenguaje no ingresado")
-        raise gr.Error("Debes ingresar el idioma a traducir")
+        raise gr.Error("Debes ingresar el idioma a traducir")                           # Muestra la alerta si no se ingresa un idioma a traducir
     
 # *************************** SERVICIOS ***************************
 # t2t: Traducir el texto a texto en el idioma deseado
@@ -297,7 +299,7 @@ def convert_video_to_text_app(lang_input,video_file, logs_file, output_audio_ext
     return text_translated
 
 # v2v: Convertir video a video
-def convert_video_to_video_app(video_file, audio_file_traslated, logs_file, return_video_traslated, output_video_ext="webm"):
+def convert_video_to_video_app(video_file, audio_file_traslated, logs_file, return_video_traslated, output_video_ext=output_video_format):
     print("Procesando video " + video_file + " para traducirlo...")
     logs_file.write("Procesando video " + video_file + " para traducirlo...\n")
     video_traslated = video_to_video(video_file, audio_file_traslated, output_video_ext,logs_file)
@@ -305,7 +307,7 @@ def convert_video_to_video_app(video_file, audio_file_traslated, logs_file, retu
     #return video_traslated
 
 # v2vs: Convertir video a video subtitulado
-def convert_video_to_video_subtitled_app(video_file, text_translated, logs_file, return_video_subtitled, output_video_ext="webm"):
+def convert_video_to_video_subtitled_app(video_file, text_translated, logs_file, return_video_subtitled, output_video_ext=output_video_format):
     print("Procesando video " + video_file + " para subtitularlo...")
     logs_file.write("Procesando video " + video_file + " para subtitularlo...\n")
     video_subtitled = video_to_video_subtitled(video_file, text_translated, output_video_ext, logs_file)
@@ -314,19 +316,21 @@ def convert_video_to_video_subtitled_app(video_file, text_translated, logs_file,
 
 # *************************** INTERFAZ ***************************
 # Entradas y salidas en la interfaz Gradio
-lang_input = gr.inputs.Dropdown(choices=[lang["lang"] for lang in langs], label="Selecciona el idioma al cual deseas traducir:*")
+lang_input = gr.components.Dropdown(choices=[lang["lang"] for lang in langs], label="Selecciona el idioma al cual deseas traducir:*")
 #video_input_file = gr.Video(label= "Noticias Caracol", value="https://www.caracoltv.com/senal-vivo")
-video_input_file = gr.Video(label= "Noticias Caracol", value="D:/Noticias/noticias_caracol_long.mp4", type="mp4")
-#video_input_file = gr.Video(label= "Noticias Caracol", source="upload", type="mp4")
-video_input_webcam = gr.Video(label= "Noticias Caracol en vivo", type="mp4", source="webcam", include_audio=1, optional=1)
-audio_input_file = gr.Audio(label="Blue Radio", value="D:/Noticias/caracol_radio.mp3", type="filepath")
-audio_input_microphone = gr.Audio(label="Blue Radio en vivo", source="microphone", type="filepath")
-text_input = gr.inputs.Textbox(label="Noticia a traducir:")
-output_text_transcribed = gr.outputs.Textbox(label="Transcripción")
-output_text_traslated = gr.outputs.Textbox(label="Traducción")
-output_audio = gr.outputs.Audio(label="Audio traducido", type='filepath')
-output_video_subtitled = gr.outputs.Video(label="Noticia subtitulada", type="webm")
-output_video_traslated = gr.outputs.Video(label="Noticia traducida", type="webm")
+#video_input_file = gr.Video(label= "Noticias Caracol", value="D:/Noticias/noticias_caracol_long.mp4")
+video_input_file = gr.Video()
+video_input_file = gr.Video(label= "Noticias Caracol", source="upload")
+video_input_webcam = gr.Video(label= "Noticias Caracol en vivo", source="webcam", include_audio=1)
+#audio_input_file = gr.Audio(label="Blue Radio", value="D:/Noticias/caracol_radio.mp3")
+audio_input_file = gr.Audio(label="Blue Radio", source="upload")
+audio_input_microphone = gr.Audio(label="Blue Radio en vivo", source="microphone")
+text_input = gr.components.Textbox(label="Noticia a traducir:")
+output_text_transcribed = gr.components.Textbox(label="Transcripción")
+output_text_traslated = gr.components.Textbox(label="Traducción")
+output_audio = gr.components.Audio(label="Audio traducido", format=output_audio_format)
+output_video_subtitled = gr.components.Video(label="Noticia subtitulada", format=output_video_format)
+output_video_traslated = gr.components.Video(label="Noticia traducida", format=output_video_format)
 
 """""""""
 embed_html = '<iframe width="560" height="315" src="https://www.youtube.com/embed/EngW7tLk6R8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
@@ -345,4 +349,5 @@ interface = gr.Interface(
     theme=gr.themes.Default(primary_hue="blue")
 )
 #interface.launch()              # Lanza la interfaz
-interface.launch(share=True, auth=("caracol", "caracol"), server_name=("127.0.0.1"), server_port=(7860), favicon_path=())
+#interface.launch(share=True, auth=("caracol", "caracol"), server_name=("127.0.0.1"), server_port=(7860), favicon_path=())
+interface.launch(share=True, auth=("caracol", "caracol"), server_name=("127.0.0.1"), server_port=(7860))
