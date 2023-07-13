@@ -50,6 +50,7 @@ def text_to_audio(text, lang, logs_file):
     selected_tts = selected_lang["tts"]
     text_translated = text_to_text(text, lang, logs_file)                                       # Traduce el texto al idioma seleccionado usando Google Translator
     wav_path = "audio_output." + output_audio_format
+    print("wav_path!!!!!!!!!!!!!!!!1", wav_path)
     selected_tts.synthesis(text_translated, wav_path=wav_path)                                  # Genera el audio y lo graba como un archivo WAV
     tiempo = time.ctime().split()
     print(tiempo[3] + " - Audio traducido generado: ",wav_path)
@@ -323,8 +324,8 @@ video_input_file = gr.Video()
 video_input_file = gr.Video(label= "Noticias Caracol", source="upload")
 video_input_webcam = gr.Video(label= "Noticias Caracol en vivo", source="webcam", include_audio=1)
 #audio_input_file = gr.Audio(label="Blue Radio", value="D:/Noticias/caracol_radio.mp3")
-audio_input_file = gr.Audio(label="Blue Radio", source="upload")
-audio_input_microphone = gr.Audio(label="Blue Radio en vivo", source="microphone")
+audio_input_file = gr.Audio(label="Blue Radio", source="upload", type="filepath")
+audio_input_microphone = gr.Audio(label="Blue Radio en vivo", source="microphone", type="filepath")
 text_input = gr.components.Textbox(label="Noticia a traducir:")
 output_text_transcribed = gr.components.Textbox(label="Transcripción")
 output_text_traslated = gr.components.Textbox(label="Traducción")
