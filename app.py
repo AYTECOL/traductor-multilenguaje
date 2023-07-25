@@ -318,28 +318,7 @@ def convert_video_to_video_subtitled_app(video_file, text_translated, logs_file,
 # *************************** INTERFAZ ***************************
 # Entradas y salidas en la interfaz Gradio
 lang_input = gr.components.Dropdown(choices=[lang["lang"] for lang in langs], label="Selecciona el idioma al cual deseas traducir:*")
-#video_input_file = gr.Video(label= "Noticias Caracol", value="https://www.caracoltv.com/senal-vivo")
-<<<<<<< HEAD
-<<<<<<< HEAD
-video_input_file = gr.Video(label= "Noticias Caracol", value="C:/Noticias/noticias_caracol_1.mp4", type="mp4")
-#video_input_file = gr.Video(label= "Noticias Caracol", source="upload", type="mp4")
-video_input_webcam = gr.Video(label= "Noticias Caracol en vivo", type="mp4", source="webcam", include_audio=1, optional=1)
-audio_input_file = gr.Audio(label="Caracol Radio", value="C:/Noticias/caracol_radio.mp3", type="filepath")
-audio_input_microphone = gr.Audio(label="Caracol Radio en vivo", source="microphone", type="filepath")
-=======
-video_input_file = gr.Video(label= "Noticias Caracol", value="D:/Noticias/noticias_caracol_long.mp4", type="mp4")
-#video_input_file = gr.Video(label= "Noticias Caracol", source="upload", type="mp4")
-video_input_webcam = gr.Video(label= "Noticias Caracol en vivo", type="mp4", source="webcam", include_audio=1, optional=1)
-audio_input_file = gr.Audio(label="Blue Radio", value="D:/Noticias/caracol_radio.mp3", type="filepath")
-audio_input_microphone = gr.Audio(label="Blue Radio en vivo", source="microphone", type="filepath")
->>>>>>> 9e38eecdc076892e866e18daa8c9dbf54ab6f7cc
-text_input = gr.inputs.Textbox(label="Noticia a traducir:")
-output_text_transcribed = gr.outputs.Textbox(label="Transcripción")
-output_text_traslated = gr.outputs.Textbox(label="Traducción")
-output_audio = gr.outputs.Audio(label="Audio traducido", type='filepath')
-output_video_subtitled = gr.outputs.Video(label="Noticia subtitulada", type="webm")
-output_video_traslated = gr.outputs.Video(label="Noticia traducida", type="webm")
-=======
+
 #video_input_file = gr.Video(label= "Noticias Caracol", value="D:/Noticias/noticias_caracol_long.mp4")
 video_input_file = gr.Video()
 video_input_file = gr.Video(label= "Noticias Caracol", source="upload")
@@ -353,7 +332,6 @@ output_text_traslated = gr.components.Textbox(label="Traducción")
 output_audio = gr.components.Audio(label="Audio traducido", format=output_audio_format)
 output_video_subtitled = gr.components.Video(label="Noticia subtitulada", format=output_video_format)
 output_video_traslated = gr.components.Video(label="Noticia traducida", format=output_video_format)
->>>>>>> 0deeb9c087516e04599140289a6d07960df89c56
 
 """""""""
 embed_html = '<iframe width="560" height="315" src="https://www.youtube.com/embed/EngW7tLk6R8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
@@ -373,4 +351,4 @@ interface = gr.Interface(
 )
 #interface.launch()              # Lanza la interfaz
 #interface.launch(share=True, auth=("caracol", "caracol"), server_name=("127.0.0.1"), server_port=(7860), favicon_path=())
-interface.launch(share=True, auth=("caracol", "caracol"), server_name=("127.0.0.1"), server_port=(7860))
+interface.launch(share=True, server_name=("127.0.0.1"), server_port=(7860))
