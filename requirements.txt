@@ -1,0 +1,4 @@
+gradio
+SpeechRecognition
+ttsmms
+deep_translator

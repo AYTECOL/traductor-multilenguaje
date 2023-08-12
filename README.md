@@ -1,3 +1,9 @@
+---
+title: traductor-multilenguaje
+app_file: app.py
+sdk: gradio
+sdk_version: 3.35.2
+---
 # Web App of Meta's META's  Massively Multilingual Speech (MMS)
 
 This repository contains a Python code that implements a [META's  Massively Multilingual Speech (MMS)](https://github.com/facebookresearch/fairseq/tree/main/examples/mms)  using the Gradio library. The application allows users to record audio and convert it to text, or enter text and generate corresponding local speech output.

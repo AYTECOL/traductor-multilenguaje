@@ -515,7 +515,7 @@ def convert_video_to_video_subtitled_app(video_file, text_translated, logs_file,
 # *************************** INTERFAZ ***************************
 # Entradas y salidas en la interfaz Gradio
 lang_input = gr.components.Dropdown(choices=[lang["lang"] for lang in langs], label="Selecciona el idioma al cual deseas traducir:*")
-#video_input_file = gr.Video(label= "Noticias Caracol", value="https://www.caracoltv.com/senal-vivo")
+
 #video_input_file = gr.Video(label= "Noticias Caracol", value="D:/Noticias/noticias_caracol_long.mp4")
 video_input_file = gr.Video()
 video_input_file = gr.Video(label= "Noticias Caracol", source="upload")
@@ -548,4 +548,4 @@ interface = gr.Interface(
 )
 #interface.launch()              # Lanza la interfaz
 #interface.launch(share=True, auth=("caracol", "caracol"), server_name=("127.0.0.1"), server_port=(7860), favicon_path=())
-interface.launch(share=True, auth=("caracol", "caracol"), server_name=("127.0.0.1"), server_port=(7860))
+interface.launch(share=True, server_name=("127.0.0.1"), server_port=(7860))
