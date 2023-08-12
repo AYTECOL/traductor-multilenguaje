@@ -9,6 +9,9 @@ import time                                         # Libreria para manejo de ti
 import math                                         # Libreria matemática, usada para redondeo de cifras
 from threading import Thread                        # Librería para manejo de Hilos de procesamiento
 
+from num2words import num2words                     # Liberia para convertir de numeros a texto
+import re                                           # Libreria para buscar caracteres en un string
+
 # Idioma de ingreso
 input_language = 'es-ES'
 output_audio_format = 'mp3'
@@ -33,7 +36,78 @@ def text_to_text(text, lang, logs_file):
     selected_lang = next((lang_item for lang_item in langs if lang_item["lang"] == lang), None)   # Busca el idioma seleccionado en la lista de idiomas disponibles
     if selected_lang is None:
         raise ValueError(f"Lenguaje '{lang}' no disponible.")
+
+    if text.isdigit():
+        text = num2words (text, lang='es', ordinal=False)                 # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+    else:                                                                                         # Sino revisa si alguna de las palabras que componen la frase, es un número
+        text_split = text.split()
+        i=0
+        for word in text_split:
+            if word.isdigit():
+                text_split[i] = num2words(word, lang='es', ordinal=False) 
+            if word.startswith("$"):                                                       # Revisa si es valor de moneda: $2000
+                word = word.replace("$","")
+                if word.isdigit():
+                    text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+            i += 1
+
+        text = ' '.join(text_split)
+
     text_translated = GoogleTranslator(source='auto', target=lang).translate(text)   # Traduce el texto al idioma seleccionado usando Google Translator
+    
+    if text_translated.isdigit():                           
+        try:
+            text_translated = num2words (text_translated, lang=lang, ordinal=False)             # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+        except NotImplementedError:
+            None
+    else:                                                                                       # Sino revisa si alguna de las palabras que componen la frase, es un número
+        text_split = text_translated.split()
+        i=0
+        for word in text_split:
+            if word.isdigit():
+                try:
+                    text_split[i] = num2words(word, lang=lang, ordinal=False)              # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                except NotImplementedError:
+                    None
+            if word.startswith("$"):                                                       # Revisa si es valor de moneda: $2000
+                word = word.replace("$","")
+                if word.isdigit():
+                    try:
+                        text_split[i] = num2words(word, lang=lang, ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                    except NotImplementedError:
+                        None
+            i += 1
+
+        text_translated = ' '.join(text_split)    
+
+    months = ['January','january','February','february','March','march','April','april','May','may','June','june','July','july','August','august','September','september','October','october','November','november','December','december']
+    for month in months:                                                # Busca si hay fechas en el string con formato americano: August 10, 2025.
+        date_full_founded = re.search(month + " .., .....$", text_translated)         # August 26, 2024. Con el punto al final del año
+        date_founded = re.search(month + " ..,", text_translated)                     # August 26, 
+
+        if date_full_founded != None:
+            date = date_full_founded.group()                                          # Captura el dato de la fecha 
+            date_split = date.split()                                                 # Separa el mes y el día
+            day = date_split[1].replace(",","")                                       # Elimina la coma ',' del número del dia de la fecha
+            year = date_split[2].replace(".","") 
+
+            if day.isdigit():
+                day = num2words (day, lang=lang, ordinal=False) + ","                 # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+            if year.isdigit():
+                year = num2words (year, lang=lang, ordinal=False) + "."               # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+
+            text_translated = text_translated.replace(date, month + " " + day + " " + year)  # Reemplaza el antiguo formato por el nuevo formato
+
+        if date_founded != None:
+            date = date_founded.group()                                               # Captura el dato de la fecha 
+            date_split = date.split()                                                 # Separa el mes y el día
+            day = date_split[1].replace(",","")                                       # Elimina la coma ',' del número del dia de la fecha
+
+            if day.isdigit():
+                day = num2words (day, lang=lang, ordinal=False) + ","                 # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+
+            text_translated = text_translated.replace(date, month + " " + day)        # Reemplaza el antiguo formato por el nuevo formato
+        
     tiempo = time.ctime().split()
     print(tiempo[3] + " - Texto traducido: ", text_translated)
     logs_file.write(tiempo[3] + " - Texto traducido: " + text_translated + "\n")
@@ -48,9 +122,25 @@ def text_to_audio(text, lang, logs_file):
     if selected_lang is None:
         raise ValueError(f"Lenguaje '{lang}' no disponible.")
     selected_tts = selected_lang["tts"]
+    if text.isdigit():
+        text = num2words (text, lang='es', ordinal=False)                 # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+    else:                                                                                         # Sino revisa si alguna de las palabras que componen la frase, es un número
+        text_split = text.split()
+        i=0
+        for word in text_split:
+            if word.isdigit():
+                text_split[i] = num2words(word, lang='es', ordinal=False) 
+            if word.startswith("$"):                                                       # Revisa si es valor de moneda: $2000
+                word = word.replace("$","")
+                if word.isdigit():
+                    text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+
+            i += 1
+
+        text = ' '.join(text_split)
+
     text_translated = text_to_text(text, lang, logs_file)                                       # Traduce el texto al idioma seleccionado usando Google Translator
     wav_path = "audio_output." + output_audio_format
-    print("wav_path!!!!!!!!!!!!!!!!1", wav_path)
     selected_tts.synthesis(text_translated, wav_path=wav_path)                                  # Genera el audio y lo graba como un archivo WAV
     tiempo = time.ctime().split()
     print(tiempo[3] + " - Audio traducido generado: ",wav_path)
@@ -97,6 +187,9 @@ def video_to_audio(video_file, output_audio_ext, logs_file):
 
 # VIDEO TO VIDEO: Función que concatena audio con el video traducido
 def video_to_video(video_file, audio_file_traslated, output_video_ext, logs_file):
+    length_video = get_length_video(video_file)                             # Se obtiene la duración del video
+    print("length_video: ", length_video)
+
     tiempo = time.ctime().split()
     print(tiempo[3] + " - Procesando el video para obtenerlo sin audio...")
     logs_file.write(tiempo[3] + " - Procesando el video para obtenerlo sin audio...\n")
@@ -105,11 +198,23 @@ def video_to_video(video_file, audio_file_traslated, output_video_ext, logs_file
                 stdout=subprocess.DEVNULL,                                  # Se extrae el video sin audio
                 stderr=subprocess.STDOUT)
     video_mute = filename + "_muted." + output_video_ext
+    length_video_mute = round(get_length_video(video_mute),3)          # Se obtiene la duración del video
+    print("length_video_mute: ", length_video_mute)
+    length_audio = round(get_length_video(audio_file_traslated),3) 
+    print("length_audio: ", length_audio)
+
+    #length_longest = max(length_video_mute,length_audio)
+    #print("length_longest: ", length_longest)
+    if length_video_mute > length_audio:
+        length_video_subtitled = str(length_video_mute)
+    if length_audio > length_video_mute:
+        length_video_subtitled = str(length_audio)
 
     tiempo = time.ctime().split()
     print(tiempo[3] + " - Doblando el video con el audio traducido...")
     logs_file.write(tiempo[3] + " - Doblando el video con el audio traducido...\n")
-    subprocess.call(["ffmpeg", "-y", "-i", video_mute, "-i", audio_file_traslated, "-shortest", f"{filename+'_traslated'}.{output_video_ext}"],   
+    #subprocess.call(["ffmpeg", "-y", "-i", video_mute, "-i", audio_file_traslated, "-shortest", f"{filename+'_traslated'}.{output_video_ext}"],   
+    subprocess.call(["ffmpeg", "-y", "-i", video_mute, "-i", audio_file_traslated, "-t", length_video_subtitled, f"{filename+'_traslated'}.{output_video_ext}"],   
                 stdout=subprocess.DEVNULL,                                  # Se concatena el video sin audio con el audio traducido
                 stderr=subprocess.STDOUT)
     video_traslated = filename + "_traslated." + output_video_ext
@@ -125,13 +230,19 @@ def video_to_video_subtitled(video_file, text_traslated, output_video_ext, logs_
     logs_file.write(tiempo[3] + " - Procesando el video subtitulado...\n")
     subtitles = text_traslated.split()
     filename, ext = os.path.splitext(video_file)                            # Se extrae el nombre del archivo y su extensión   
-    #filedir = os.path.dirname(video_file)
-    #subtitles_file = open(f"{filename+'_subtitles'}.srt","w+")
-    length_video = get_length_video(video_file)
-    length_line_subtitle = math.ceil(len(subtitles)/length_video)           # Rate de palabras por segundo de video
+    length_video = get_length_video(video_file)                             # Se obtiene la duración del video
+    miliseg, seg = math.modf(length_video)                                  # Se obtienen los milisegundos de la duración del video
+    miliseg_video = int(round(miliseg,3)*1000)                              # Se pasa el número de milisegundos de flotante a entero
+    if miliseg_video == 0:
+        miliseg_video = "000"
+    length_line_subtitle = math.ceil(len(subtitles)/length_video)           # Rate de palabras por segundo de video  
     i=0
     j=0
     subtitles_line = []
+    print("length_video", length_video)
+    print("length_line_subtitle", length_line_subtitle)
+    print("length_video//length_line_subtitle: ", length_video//length_line_subtitle)
+    print("len(subtitles)", len(subtitles))
     while i < length_video//length_line_subtitle:                           # Ciclo para timming de subtítulos
         while j < len(subtitles):
             line = ' '.join(subtitles[j:j+length_line_subtitle])            # Concatena palabras en una frase de acuerdo al rate de palabras
@@ -142,8 +253,17 @@ def video_to_video_subtitled(video_file, text_traslated, output_video_ext, logs_
     subtitles_file = open(f"{'video_subtitles'}.srt","w+")                  # Se genera el archivo de subtítulos .srt
     i=0
     while i < len(subtitles_line):
-        subtitles_content = (''''''+str(i+1)+'''
+        if len(subtitles_line)-i > 1:
+            subtitles_content = (''''''+str(i+1)+'''
 '''+ time.strftime('%H:%M:%S', time.gmtime(i)) + ''',001 --> ''' + time.strftime('%H:%M:%S', time.gmtime(i+1)) + ''',000 --> ''' +
+'''
+''''''<b>'''+ subtitles_line[i] +'''</b>'''
+'''
+''')
+
+        if len(subtitles_line)-i == 1:                          # Revisa si es la ultima línea para agregar los milisegundos finales
+            subtitles_content = (''''''+str(i+1)+'''
+'''+ time.strftime('%H:%M:%S', time.gmtime(i)) + ''',001 --> ''' + time.strftime('%H:%M:%S', time.gmtime(i+1)) + ''',''' + str(miliseg_video) + ''' --> ''' +
 '''
 ''''''<b>'''+ subtitles_line[i] +'''</b>'''
 '''
@@ -152,7 +272,6 @@ def video_to_video_subtitled(video_file, text_traslated, output_video_ext, logs_
         i += 1
 
     subtitles_file.close()
-    #subtitles_file = filename + "_subtitles.srt"
     subprocess.call(["ffmpeg", "-y", "-copyts", "-i", video_file, "-vf", "subtitles=video_subtitles.srt:force_style='Fontname=Futura,Fontsize=20,MarginV=50,Shadow=1'", f"{filename+'_subtitled'}.{output_video_ext}"],   
                 stdout=subprocess.DEVNULL,                                  # Se insertan los subtitulos al video con el audio original
                 stderr=subprocess.STDOUT)
@@ -184,9 +303,24 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
         print(tiempo[3] + " - Traduciendo el video grabado: " + video_file_webcam + " al idioma " + lang_input)
         logs_file.write(tiempo[3] + " - Traduciendo el video grabado: " + video_file_webcam + " al idioma " + lang_input + "\n")
         text_transcribed = convert_video_to_text_app(lang_input, video_file_webcam, logs_file)
+        if text_transcribed.isdigit():                                                                # Revisa si la frase completa es un número
+            text_transcribed = num2words (text_transcribed, lang='es', ordinal=False)                 # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+        else:                                                                                         # Sino revisa si alguna de las palabras que componen la frase, es un número
+            text_split = text_transcribed.split()
+            i=0
+            for word in text_split:
+                if word.isdigit():
+                    text_split[i] = num2words(word, lang='es', ordinal=False) 
+                if word.startswith("$"):                                                       # Revisa si es valor de moneda: $2000
+                    word = word.replace("$","")
+                    if word.isdigit():
+                        text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+
+                i += 1
+
+            text_transcribed = ' '.join(text_split)
+
         audio_traslated, text_translated = text_to_audio(text_transcribed, lang_input, logs_file)
-        #video_subtitled = convert_video_to_video_subtitled_app(video_file_webcam, text_translated, logs_file)
-        #video_traslated = convert_video_to_video_app(video_file_webcam, audio_traslated, logs_file)
         return_video_subtitled = [None]*1
         return_video_traslated = [None]*1
         hilo_video_subtitled = Thread(target=convert_video_to_video_subtitled_app, args=(video_file_webcam, text_translated,logs_file,return_video_subtitled,))
@@ -212,6 +346,22 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
         print("FIN PROCESO GRABACIÓN AUDIO DEL MICRÓFONO")
         logs_file.write("FIN PROCESO GRABACIÓN AUDIO DEL MICRÓFONO\n")
         logs_file.close()
+        if text_transcribed.isdigit():
+            text_transcribed = num2words (text_transcribed, lang='es', ordinal=False)                 # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+        else:                                                                                         # Sino revisa si alguna de las palabras que componen la frase, es un número
+            text_split = text_transcribed.split()
+            i=0
+            for word in text_split:
+                if word.isdigit():
+                    text_split[i] = num2words(word, lang='es', ordinal=False) 
+                if word.startswith("$"):                                                       # Revisa si es valor de moneda: $2000
+                    word = word.replace("$","")
+                    if word.isdigit():
+                        text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                i += 1
+
+            text_transcribed = ' '.join(text_split)
+
         return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
     if video_file_upload and lang_input:
         print("PROCESANDO ARCHIVO DE VIDEO")
@@ -219,9 +369,23 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
         print(tiempo[3] + " - Traduciendo el video ingresado " + video_file_upload + " al idioma " + lang_input)
         logs_file.write(tiempo[3] + " - Traduciendo el video ingresado " + video_file_upload + " al idioma " + lang_input + "\n")
         text_transcribed = convert_video_to_text_app(lang_input,video_file_upload,logs_file)
+        if text_transcribed.isdigit():
+            text_transcribed = num2words (text_transcribed, lang='es', ordinal=False)                 # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+        else:                                                                                         # Sino revisa si alguna de las palabras que componen la frase, es un número
+            text_split = text_transcribed.split()
+            i=0
+            for word in text_split:
+                if word.isdigit():
+                    text_split[i] = num2words(word, lang='es', ordinal=False) 
+                if word.startswith("$"):                                                       # Revisa si es valor de moneda: $2000
+                    word = word.replace("$","")
+                    if word.isdigit():
+                        text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                i += 1
+
+            text_transcribed = ' '.join(text_split)
+
         audio_traslated, text_translated = text_to_audio(text_transcribed, lang_input,logs_file)
-        #video_subtitled = convert_video_to_video_subtitled_app(video_file_upload, text_translated,logs_file)
-        #video_traslated = convert_video_to_video_app(video_file_upload, audio_traslated,logs_file)
         return_video_subtitled = [None]*1
         return_video_traslated = [None]*1
         hilo_video_subtitled = Thread(target=convert_video_to_video_subtitled_app, args=(video_file_upload, text_translated,logs_file,return_video_subtitled,))
@@ -248,12 +412,45 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
         print("FIN PROCESO ARCHIVO DE AUDIO")
         logs_file.write("FIN PROCESO ARCHIVO DE AUDIO\n")
         logs_file.close()
+        if text_transcribed.isdigit():
+            text_transcribed = num2words (text_transcribed, lang='es', ordinal=False)                 # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+        else:                                                                                         # Sino revisa si alguna de las palabras que componen la frase, es un número
+            text_split = text_transcribed.split()
+            i=0
+            for word in text_split:
+                if word.isdigit():
+                    text_split[i] = num2words(word, lang='es', ordinal=False) 
+                if word.startswith("$"):                                                       # Revisa si es valor de moneda: $2000
+                    word = word.replace("$","")
+                    if word.isdigit():
+                        text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                i += 1
+
+            text_transcribed = ' '.join(text_split)
+
         return text_transcribed, text_translated, audio_traslated, video_subtitled, video_traslated
     if text_input and lang_input:
         print("PROCESANDO TEXTO INGRESADO")
         logs_file.write("PROCESANDO TEXTO INGRESADO\n")
         print(tiempo[3] + " - Traduciendo el texto ingresado " + text_input + " al idioma " + lang_input)
         logs_file.write(tiempo[3] + " - Traduciendo el texto ingresado " + text_input + " al idioma " + lang_input + "\n")
+       
+        if text_input.isdigit():                                                                # Revisa si la frase completa es un número
+            text_input = num2words(text_input, lang='es', ordinal=False)                        # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+        else:                                                                                   # Sino revisa si alguna de las palabras que componen la frase, es un número
+            text_split = text_input.split()
+            i=0
+            for word in text_split:
+                if word.isdigit():
+                    text_split[i] = num2words(word, lang='es', ordinal=False) 
+                if word.startswith("$"):                                                       # Revisa si es valor de moneda: $2000
+                    word = word.replace("$","")
+                    if word.isdigit():
+                        text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                i += 1
+
+            text_input = ' '.join(text_split)
+
         audio_traslated, text_translated = text_to_audio(text_input, lang_input, logs_file)
         video_subtitled = None
         video_traslated = None
