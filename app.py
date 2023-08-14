@@ -49,6 +49,18 @@ def text_to_text(text, lang, logs_file):
                 word = word.replace("$","")
                 if word.isdigit():
                     text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+            if word.endswith("%"):                                                         # Revisa si es valor de porcentaje: 12.24%
+                word = word.replace("%","")
+                if word.isdigit():
+                    try:
+                        text_split[i] = num2words(word, lang='es', ordinal=False) + " por ciento"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                    except NotImplementedError:
+                        None
+                if word.count(".") == 1:
+                    word_split = word.split(".")
+                    word_split[0] = num2words(word_split[0], lang='es', ordinal=False) + " punto"
+                    word_split[1] = num2words(word_split[1], lang='es', ordinal=False) + " por ciento"
+                    text_split[i] = ' '.join(word_split)                        
             i += 1
 
         text = ' '.join(text_split)
@@ -76,6 +88,18 @@ def text_to_text(text, lang, logs_file):
                         text_split[i] = num2words(word, lang=lang, ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
                     except NotImplementedError:
                         None
+            if word.endswith("%"):                                                         # Revisa si es valor de porcentaje: 12.24%
+                word = word.replace("%","")
+                if word.isdigit():
+                    try:
+                        text_split[i] = num2words(word, lang=lang, ordinal=False) + " percent"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                    except NotImplementedError:
+                        None
+                if word.count(".") == 1:
+                    word_split = word.split(".")
+                    word_split[0] = num2words(word_split[0], lang=lang, ordinal=False) + " point"
+                    word_split[1] = num2words(word_split[1], lang=lang, ordinal=False) + " percent"
+                    text_split[i] = ' '.join(word_split)
             i += 1
 
         text_translated = ' '.join(text_split)    
@@ -134,7 +158,18 @@ def text_to_audio(text, lang, logs_file):
                 word = word.replace("$","")
                 if word.isdigit():
                     text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
-
+            if word.endswith("%"):                                                         # Revisa si es valor de porcentaje: 12.24%
+                word = word.replace("%","")
+                if word.isdigit():
+                    try:
+                        text_split[i] = num2words(word, lang='es', ordinal=False) + " por ciento"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                    except NotImplementedError:
+                        None
+                if word.count(".") == 1:
+                    word_split = word.split(".")
+                    word_split[0] = num2words(word_split[0], lang='es', ordinal=False) + " punto"
+                    word_split[1] = num2words(word_split[1], lang='es', ordinal=False) + " por ciento"
+                    text_split[i] = ' '.join(word_split)                        
             i += 1
 
         text = ' '.join(text_split)
@@ -313,7 +348,18 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
                     word = word.replace("$","")
                     if word.isdigit():
                         text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
-
+                if word.endswith("%"):                                                         # Revisa si es valor de porcentaje: 12.24%
+                    word = word.replace("%","")
+                    if word.isdigit():
+                        try:
+                            text_split[i] = num2words(word, lang='es', ordinal=False) + " por ciento"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                        except NotImplementedError:
+                            None
+                if word.count(".") == 1:
+                    word_split = word.split(".")
+                    word_split[0] = num2words(word_split[0], lang='es', ordinal=False) + " punto"
+                    word_split[1] = num2words(word_split[1], lang='es', ordinal=False) + " por ciento"
+                    text_split[i] = ' '.join(word_split)  
                 i += 1
 
             text_transcribed = ' '.join(text_split)
@@ -356,6 +402,18 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
                     word = word.replace("$","")
                     if word.isdigit():
                         text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                if word.endswith("%"):                                                         # Revisa si es valor de porcentaje: 12.24%
+                    word = word.replace("%","")
+                    if word.isdigit():
+                        try:
+                            text_split[i] = num2words(word, lang='es', ordinal=False) + " por ciento"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                        except NotImplementedError:
+                            None                
+                if word.count(".") == 1:
+                    word_split = word.split(".")
+                    word_split[0] = num2words(word_split[0], lang='es', ordinal=False) + " punto"
+                    word_split[1] = num2words(word_split[1], lang='es', ordinal=False) + " por ciento"
+                    text_split[i] = ' '.join(word_split)  
                 i += 1
 
             text_transcribed = ' '.join(text_split)
@@ -379,6 +437,18 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
                     word = word.replace("$","")
                     if word.isdigit():
                         text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                if word.endswith("%"):                                                         # Revisa si es valor de porcentaje: 12.24%
+                    word = word.replace("%","")
+                    if word.isdigit():
+                        try:
+                            text_split[i] = num2words(word, lang='es', ordinal=False) + " por ciento"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                        except NotImplementedError:
+                            None
+                if word.count(".") == 1:
+                    word_split = word.split(".")
+                    word_split[0] = num2words(word_split[0], lang='es', ordinal=False) + " punto"
+                    word_split[1] = num2words(word_split[1], lang='es', ordinal=False) + " por ciento"
+                    text_split[i] = ' '.join(word_split)  
                 i += 1
 
             text_transcribed = ' '.join(text_split)
@@ -422,6 +492,18 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
                     word = word.replace("$","")
                     if word.isdigit():
                         text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                if word.endswith("%"):                                                         # Revisa si es valor de porcentaje: 12.24%
+                    word = word.replace("%","")
+                    if word.isdigit():
+                        try:
+                            text_split[i] = num2words(word, lang='es', ordinal=False) + " por ciento"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                        except NotImplementedError:
+                            None
+                if word.count(".") == 1:
+                    word_split = word.split(".")
+                    word_split[0] = num2words(word_split[0], lang='es', ordinal=False) + " punto"
+                    word_split[1] = num2words(word_split[1], lang='es', ordinal=False) + " por ciento"
+                    text_split[i] = ' '.join(word_split)  
                 i += 1
 
             text_transcribed = ' '.join(text_split)
@@ -445,6 +527,18 @@ def multimedia_to_multimedia_app(lang_input, video_file_upload, audio_file_uploa
                     word = word.replace("$","")
                     if word.isdigit():
                         text_split[i] = num2words(word, lang='es', ordinal=False) + " pesos"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                if word.endswith("%"):                                                         # Revisa si es valor de porcentaje: 12.24%
+                    word = word.replace("%","")
+                    if word.isdigit():
+                        try:
+                            text_split[i] = num2words(word, lang='es', ordinal=False) + " por ciento"  # Convierte de numeros a el numero pero en texto (Ej: 2024 -> dos mil veinticuatro)
+                        except NotImplementedError:
+                            None
+                if word.count(".") == 1:
+                    word_split = word.split(".")
+                    word_split[0] = num2words(word_split[0], lang='es', ordinal=False) + " punto"
+                    word_split[1] = num2words(word_split[1], lang='es', ordinal=False) + " por ciento"
+                    text_split[i] = ' '.join(word_split)  
                 i += 1
 
             text_input = ' '.join(text_split)
