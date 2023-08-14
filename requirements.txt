@@ -3,3 +3,4 @@ SpeechRecognition
 ttsmms
 deep_translator
 pydub
+num2words
